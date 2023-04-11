@@ -260,6 +260,20 @@ export default {
       if (data instanceof STAC) {
         this.onDataLoaded();
       }
+    },
+    $route: {
+      deep: true,
+      handler(newRoute) {
+        // TODO better check
+        if (newRoute.path.includes('/collection.json')) {
+          const parts = newRoute.path.split('/')
+          window.parent.postMessage({
+            navigate: true,
+            type: parts.length === 6 ? 'projects' : 'products',
+            id: parts.length === 6 ? parts[4] : parts[4] + '/' + parts[5]
+          }, '*')
+        }
+      }
     }
   },
   created() {
@@ -287,8 +301,18 @@ export default {
     });
   },
   mounted() {
+    window.parent.postMessage({
+      status: 'ready'
+    }, '*')
     this.$root.$on('error', this.showError);
     setInterval(() => this.$store.dispatch('loadBackground', 3), 200);
+    window.addEventListener('message', evt => {
+      if (evt.data && evt.data.navigate) {
+        if (`/external/constantinius.github.io/osc-demo${evt.data.id}/collection.json` !== this.$route.path) {
+          this.$router.push(`/external/constantinius.github.io/osc-demo${evt.data.id}/collection.json`)
+        }
+      }
+    })
   },
   methods: {
     ...mapActions(['switchLocale']),
