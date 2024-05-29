@@ -264,6 +264,13 @@ export default {
     }
   },
   created() {
+      window.addEventListener(
+        "message",
+        (event) => {
+          this.$store.commit("force", event.data.data);
+        },
+        false,
+      );
     this.$router.onReady(() => {
       this.detectLocale();
       this.parseQuery(this.$route);
